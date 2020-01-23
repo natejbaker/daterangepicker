@@ -31,19 +31,26 @@
 }(this, function(moment, $) {
     var DateRangePicker = function(element, options, cb) {
 
+        //custom options from user
+        if (typeof options !== 'object' || options === null)
+            options = {};
+
+        this.timezone = typeof options.locale === 'object'
+            ? options.locale.timezone : null;
+
         //default settings for options
         this.parentEl = 'body';
         this.element = $(element);
-        this.startDate = moment().startOf('day');
-        this.endDate = moment().endOf('day');
+        this.startDate = this._moment().startOf('day');
+        this.endDate = this._moment().endOf('day');
         this.minDate = false;
         this.maxDate = false;
         this.maxSpan = false;
         this.autoApply = false;
         this.singleDatePicker = false;
         this.showDropdowns = false;
-        this.minYear = moment().subtract(100, 'year').format('YYYY');
-        this.maxYear = moment().add(100, 'year').format('YYYY');
+        this.minYear = this._moment().subtract(100, 'year').format('YYYY');
+        this.maxYear = this._moment().add(100, 'year').format('YYYY');
         this.showWeekNumbers = false;
         this.showISOWeekNumbers = false;
         this.showCustomRangeLabel = true;
@@ -87,10 +94,6 @@
         this.isShowing = false;
         this.leftCalendar = {};
         this.rightCalendar = {};
-
-        //custom options from user
-        if (typeof options !== 'object' || options === null)
-            options = {};
 
         //allow setting options with data attributes
         //data-api options will be overwritten with custom javascript options
@@ -163,28 +166,28 @@
         this.container.addClass(this.locale.direction);
 
         if (typeof options.startDate === 'string')
-            this.startDate = moment(options.startDate, this.locale.format);
+            this.startDate = this._moment(options.startDate, this.locale.format);
 
         if (typeof options.endDate === 'string')
-            this.endDate = moment(options.endDate, this.locale.format);
+            this.endDate = this._moment(options.endDate, this.locale.format);
 
         if (typeof options.minDate === 'string')
-            this.minDate = moment(options.minDate, this.locale.format);
+            this.minDate = this._moment(options.minDate, this.locale.format);
 
         if (typeof options.maxDate === 'string')
-            this.maxDate = moment(options.maxDate, this.locale.format);
+            this.maxDate = this._moment(options.maxDate, this.locale.format);
 
         if (typeof options.startDate === 'object')
-            this.startDate = moment(options.startDate);
+            this.startDate = this._moment(options.startDate);
 
         if (typeof options.endDate === 'object')
-            this.endDate = moment(options.endDate);
+            this.endDate = this._moment(options.endDate);
 
         if (typeof options.minDate === 'object')
-            this.minDate = moment(options.minDate);
+            this.minDate = this._moment(options.minDate);
 
         if (typeof options.maxDate === 'object')
-            this.maxDate = moment(options.maxDate);
+            this.maxDate = this._moment(options.maxDate);
 
         // sanity check for bad options
         if (this.minDate && this.startDate.isBefore(this.minDate))
@@ -298,11 +301,11 @@
                 start = end = null;
 
                 if (split.length == 2) {
-                    start = moment(split[0], this.locale.format);
-                    end = moment(split[1], this.locale.format);
+                    start = this._moment(split[0], this.locale.format);
+                    end = this._moment(split[1], this.locale.format);
                 } else if (this.singleDatePicker && val !== "") {
-                    start = moment(val, this.locale.format);
-                    end = moment(val, this.locale.format);
+                    start = this._moment(val, this.locale.format);
+                    end = this._moment(val, this.locale.format);
                 }
                 if (start !== null && end !== null) {
                     this.setStartDate(start);
@@ -315,14 +318,14 @@
             for (range in options.ranges) {
 
                 if (typeof options.ranges[range][0] === 'string')
-                    start = moment(options.ranges[range][0], this.locale.format);
+                    start = this._moment(options.ranges[range][0], this.locale.format);
                 else
-                    start = moment(options.ranges[range][0]);
+                    start = this._moment(options.ranges[range][0]);
 
                 if (typeof options.ranges[range][1] === 'string')
-                    end = moment(options.ranges[range][1], this.locale.format);
+                    end = this._moment(options.ranges[range][1], this.locale.format);
                 else
-                    end = moment(options.ranges[range][1]);
+                    end = this._moment(options.ranges[range][1]);
 
                 // If the start or end date exceed those allowed by the minDate or maxSpan
                 // options, shorten the range to the allowable period.
@@ -452,10 +455,10 @@
 
         setStartDate: function(startDate) {
             if (typeof startDate === 'string')
-                this.startDate = moment(startDate, this.locale.format);
+                this.startDate = this._moment(startDate, this.locale.format);
 
             if (typeof startDate === 'object')
-                this.startDate = moment(startDate);
+                this.startDate = this._moment(startDate);
 
             if (!this.timePicker)
                 this.startDate = this.startDate.startOf('day');
@@ -483,10 +486,10 @@
 
         setEndDate: function(endDate) {
             if (typeof endDate === 'string')
-                this.endDate = moment(endDate, this.locale.format);
+                this.endDate = this._moment(endDate, this.locale.format);
 
             if (typeof endDate === 'object')
-                this.endDate = moment(endDate);
+                this.endDate = this._moment(endDate);
 
             if (!this.timePicker)
                 this.endDate = this.endDate.endOf('day');
@@ -526,9 +529,9 @@
                 this.renderTimePicker('left');
                 this.renderTimePicker('right');
                 if (!this.endDate) {
-                    this.container.find('.right .calendar-time select').prop('disabled', true).addClass('disabled');
+                    this.container.find('.right .calendar-time select').attr('disabled', 'disabled').addClass('disabled');
                 } else {
-                    this.container.find('.right .calendar-time select').prop('disabled', false).removeClass('disabled');
+                    this.container.find('.right .calendar-time select').removeAttr('disabled').removeClass('disabled');
                 }
             }
             if (this.endDate)
@@ -653,10 +656,10 @@
             if (dayOfWeek == this.locale.firstDay)
                 startDay = daysInLastMonth - 6;
 
-            var curDate = moment([lastYear, lastMonth, startDay, 12, minute, second]);
+            var curDate = this._moment([lastYear, lastMonth, startDay, 12, minute, second]);
 
             var col, row;
-            for (var i = 0, col = 0, row = 0; i < 42; i++, col++, curDate = moment(curDate).add(24, 'hour')) {
+            for (var i = 0, col = 0, row = 0; i < 42; i++, col++, curDate = this._moment(curDate).add(24, 'hour')) {
                 if (i > 0 && col % 7 === 0) {
                     col = 0;
                     row++;
@@ -1014,9 +1017,9 @@
         updateFormInputs: function() {
 
             if (this.singleDatePicker || (this.endDate && (this.startDate.isBefore(this.endDate) || this.startDate.isSame(this.endDate)))) {
-                this.container.find('button.applyBtn').prop('disabled', false);
+                this.container.find('button.applyBtn').removeAttr('disabled');
             } else {
-                this.container.find('button.applyBtn').prop('disabled', true);
+                this.container.find('button.applyBtn').attr('disabled', 'disabled');
             }
 
         },
@@ -1498,12 +1501,12 @@
                 end = null;
 
             if (dateString.length === 2) {
-                start = moment(dateString[0], this.locale.format);
-                end = moment(dateString[1], this.locale.format);
+                start = this._moment(dateString[0], this.locale.format);
+                end = this._moment(dateString[1], this.locale.format);
             }
 
             if (this.singleDatePicker || start === null || end === null) {
-                start = moment(this.element.val(), this.locale.format);
+                start = this._moment(this.element.val(), this.locale.format);
                 end = start;
             }
 
@@ -1545,6 +1548,13 @@
             this.container.remove();
             this.element.off('.daterangepicker');
             this.element.removeData();
+        },
+
+        _moment: function (...args) {
+            if(moment.tz && this.timezone)
+                return moment(...args).tz(this.timezone);
+
+            return moment(...args);
         }
 
     };
